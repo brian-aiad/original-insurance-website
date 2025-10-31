@@ -1,0 +1,12 @@
+# Node
+node_modules/
+dist/
+.env
+.DS_Store
+
+# Vite / build artifacts
+.vite
+*.log
+
+# System
+Thumbs.db
