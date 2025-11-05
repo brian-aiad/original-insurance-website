@@ -1,0 +1,3 @@
+* text=auto
+*.{js,ts,tsx,jsx,css,scss,md,json,html,svg,cjs,mjs} text eol=lf
+*.{png,jpg,jpeg,webp,gif,ico,ttf,woff,woff2} -text
