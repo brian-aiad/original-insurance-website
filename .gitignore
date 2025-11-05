@@ -1,16 +1,10 @@
-# dependencies & build
+# .gitignore
 node_modules/
 dist/
-
-# env & local config
+.firebase/
 .env
 .env.*
 !.env.example
-
-# firebase local cache
-.firebase/
-
-# logs & editor junk
+.vscode/
 *.log
 .DS_Store
-.vscode/
