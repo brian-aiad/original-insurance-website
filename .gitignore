@@ -1,12 +1,16 @@
-# Node
+# dependencies & build
 node_modules/
 dist/
+
+# env & local config
 .env
-.DS_Store
+.env.*
+!.env.example
 
-# Vite / build artifacts
-.vite
+# firebase local cache
+.firebase/
+
+# logs & editor junk
 *.log
-
-# System
-Thumbs.db
+.DS_Store
+.vscode/
