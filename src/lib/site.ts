@@ -58,7 +58,7 @@ export const site = {
       name: "Yesenia Villalvaso",
       source: "Google Reviews",
       quote:
-        "Five years with the office — honest, responsive, and consistently great service. I’ve referred family and coworkers.",
+        "Five years with the office — honest, responsive, and consistently great service. I’ve referred all my family",
     },
     {
       name: "Ivania Jimenez",
@@ -73,7 +73,7 @@ export const site = {
         "Over 10 years with the agency. They always answer my calls and address my concerns quickly.",
     },
   ],
-  carriersLogos: Array.from({ length: 6 }).map((_, i) =>
+  carriersLogos: Array.from({ length: 8 }).map((_, i) =>
     new URL(`../assets/clients/client-${i + 1}.png`, import.meta.url).href
   ),
 };

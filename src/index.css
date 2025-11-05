@@ -1,41 +1,42 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Brand tokens for non-utility usage */
-:root{
+/* Global */
+html { scroll-behavior: smooth; }
+body { @apply font-sans antialiased text-slate-800 bg-slate-50; }
+:root {
+  /* Keep CSS vars in case you need non-utility usage */
   --brand-50:#f0f6ff; --brand-100:#e4efff; --brand-200:#c9defe; --brand-300:#a6c7fb;
   --brand-400:#6ea2f6; --brand-500:#2f73ee; --brand-600:#1f5bd4; --brand-700:#1646aa;
   --brand-800:#123a8b; --brand-900:#0e2f71;
 }
+::selection { background: var(--brand-200); color: #0b1730; }
 
-/* Smooth fonts + selection */
-html { scroll-behavior: smooth; }
-body { @apply antialiased text-slate-800 bg-slate-50; }
-::selection { background: var(--brand-200); color:#0b1730; }
+/* Reusable pieces */
+@layer components {
+  .card { @apply bg-white rounded-2xl ring-1 ring-slate-900/5 shadow-soft; }
 
-/* Reusable card */
-.card {
-  @apply bg-white shadow-soft rounded-2xl ring-1 ring-slate-900/5;
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2
+           font-medium transition focus:outline-none;
+  }
+  .btn-primary {
+    @apply bg-brand-600 text-white hover:bg-brand-700
+           focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-300;
+  }
+  .btn-ghost {
+    @apply bg-white/80 text-brand-700 hover:bg-white ring-1 ring-slate-200;
+  }
+
+  .header-blur {
+    backdrop-filter: saturate(180%) blur(8px);
+    -webkit-backdrop-filter: saturate(180%) blur(8px);
+  }
 }
 
-/* Buttons */
-.btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 font-medium transition;
-}
-.btn-primary {
-  @apply bg-brand-600 text-white hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand-400;
-}
-.btn-ghost {
-  @apply bg-white/70 text-brand-700 hover:bg-white focus-visible:ring-2 focus-visible:ring-brand-300;
-}
-
-/* Header backdrop blur */
-.header-blur {
-  backdrop-filter: saturate(180%) blur(8px);
-  -webkit-backdrop-filter: saturate(180%) blur(8px);
-}
-
-/* Simple fade-ins */
+/* Simple entrance */
 @keyframes fadeUp { from {opacity:0; transform: translateY(6px)} to {opacity:1; transform: translateY(0)} }
 .fade-up { animation: fadeUp .5s ease both; }

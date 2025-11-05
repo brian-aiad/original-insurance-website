@@ -1,12 +1,14 @@
 // src/pages/Home.tsx
-// Original Insurance — Home page (premium, blue-forward, mobile-first)
+// Original Insurance — Home page (premium, blue-forward, mobile-first, v2.4)
+// Fixes: remove hero “white box”, repair post-reviews section, add top-edge shadow
+// to every major section, unify spacing, keep tuned service image crops.
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { site } from "../lib/site";
 
 /* ────────────────────────────────────────────────────────────────────────────
-   Local images (place under src/assets/photos/)
+   Local images
    ──────────────────────────────────────────────────────────────────────────── */
 const photos = {
   hero: new URL("../assets/photos/hero-team.jpg", import.meta.url).href,
@@ -28,15 +30,22 @@ const OFFICE = {
   city: "Downey",
   region: "CA",
   zip: "90240",
-  hoursShort: "Mon–Fri 9–6, Sat 10–2",
+  hoursShort: "Mon–Fri 9–6, Sat by appt.",
 } as const;
 
 /* ────────────────────────────────────────────────────────────────────────────
-   Utils & atoms
+   Small helpers
    ──────────────────────────────────────────────────────────────────────────── */
 function clsx(...v: (string | false | null | undefined)[]) {
   return v.filter(Boolean).join(" ");
 }
+
+/** A soft gradient line that appears at the TOP of a section.
+ *  Drop this as the very first child INSIDE each section. */
+function TopEdge({ from = "from-slate-200/70" }: { from?: string }) {
+  return <div className={clsx("pointer-events-none h-3 w-full bg-gradient-to-b", from, "to-transparent")} />;
+}
+
 
 function Pill({ children }: { children: React.ReactNode }) {
   return (
@@ -66,17 +75,30 @@ function SectionHeader({
           {eyebrow}
         </p>
       )}
-      <h2 className="mt-2 font-display text-2xl md:text-3xl font-semibold text-slate-900">
-        {title}
-      </h2>
+      <h2 className="mt-2 text-2xl md:text-3xl font-semibold text-slate-900">{title}</h2>
       {subtitle && <p className="mt-2 text-slate-600">{subtitle}</p>}
       {kicker}
     </header>
   );
 }
 
+/** SectionCard — soft, lifted wrapper for groups of content */
+function SectionCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div
+      className={clsx(
+        "rounded-2xl ring-1 ring-slate-200 bg-white shadow-soft relative overflow-hidden",
+        className
+      )}
+    >
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white to-slate-50/60" />
+      <div className="relative">{children}</div>
+    </div>
+  );
+}
+
 /* =============================================================================
-   Icon set (stroke-less, UI-safe)
+   Icons (solid)
 ============================================================================= */
 const I = {
   phone: (p: any) => (
@@ -89,7 +111,6 @@ const I = {
       <path d="M12 2A7 7 0 0 0 5 9c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" />
     </svg>
   ),
-  // line icons for sections
   auto: (p: any) => (
     <svg viewBox="0 0 24 24" fill="currentColor" {...p}>
       <path d="M5 16a3 3 0 1 1 2.9-3.6h8.2A3 3 0 1 1 19 16H5zm2-6 2-3h6l2 3H7z" />
@@ -144,9 +165,7 @@ function StickyRibbon() {
     <div className="fixed bottom-4 left-0 right-0 z-40">
       <div className="container">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 rounded-2xl bg-brand-700 text-white px-4 py-3 shadow-hard ring-1 ring-white/10">
-          <p className="text-sm md:text-base">
-            Ready for a better rate? Get a custom quote in minutes.
-          </p>
+          <p className="text-sm md:text-base">Ready for a better rate? Get a custom quote in minutes.</p>
           <div className="flex gap-2">
             <a className="btn btn-ghost hidden md:inline-flex" href={site.contact.phoneHref}>
               Call {site.contact.phone}
@@ -165,65 +184,53 @@ function StickyRibbon() {
    Top contact strip
 ============================================================================= */
 function QuickContactBar() {
+  const mapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    `${OFFICE.street}, ${OFFICE.city}, ${OFFICE.region} ${OFFICE.zip}`
+  )}`;
   return (
     <div className="bg-brand-900 text-white">
-      <div className="container py-2 text-[13px] flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6">
+      {/* bigger text + spacing */}
+      <div className="container py-2.5 text-sm md:text-base lg:text-[17px] flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-6">
+        {/* hours */}
         <div className="inline-flex items-center gap-2">
           <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-400" aria-hidden />
-          <span className="opacity-90">{OFFICE.hoursShort}</span>
+          <span className="text-white/95 font-medium">{OFFICE.hoursShort}</span>
         </div>
+
         <div className="hidden sm:block text-white/30">|</div>
-        <div className="inline-flex items-center gap-2">
-          {I.pin({ className: "h-4 w-4 opacity-80" })}
-          <span className="opacity-90">
+
+        {/* address (click → maps) */}
+        <a
+          className="inline-flex items-center gap-2 hover:underline"
+          href={mapsHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Open office address in Google Maps"
+        >
+          {I.pin({ className: "h-5 w-5 opacity-90" })}{" "}
+          <span className="text-white/95 font-medium">
             {OFFICE.street}, {OFFICE.city}, {OFFICE.region} {OFFICE.zip}
           </span>
-        </div>
+        </a>
+
         <div className="hidden sm:block text-white/30">|</div>
+
+        {/* phone */}
         <a className="inline-flex items-center gap-2 hover:underline" href={site.contact.phoneHref}>
-          {I.phone({ className: "h-4 w-4 opacity-80" })}
-          {site.contact.phone}
+          {I.phone({ className: "h-5 w-5 opacity-90" })}{" "}
+          <span className="text-white/95 font-semibold">{site.contact.phone}</span>
         </a>
       </div>
+
+      {/* keep the soft drop shadow under the bar */}
+      <div className="h-[8px] w-full bg-gradient-to-b from-black/10 to-transparent" />
     </div>
   );
 }
 
-/* =============================================================================
-   Carriers strip (normalized sizes)
-============================================================================= */
-function CarriersStrip() {
-  // allow for either site.carriersLogos or a local fallback
-  const logos: string[] = (site as any).carriersLogos || [];
-  return (
-    <section aria-label="Our carrier partners" className="py-10 bg-white">
-      <div className="container">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-6">
-          {logos.map((src: string, i: number) => (
-            <div
-              key={i}
-              className="relative rounded-2xl bg-white ring-1 ring-slate-200 shadow-soft h-[76px] w-full overflow-hidden grid place-items-center"
-            >
-              {/* fixed canvas keeps all brand marks visually consistent */}
-              <div className="h-[46px] w-[160px] grid place-items-center">
-                <img
-                  src={src}
-                  alt={`Carrier ${i + 1}`}
-                  className="max-h-[36px] md:max-h-[40px] w-auto object-contain opacity-90 transition-transform duration-300 hover:scale-[1.06]"
-                  loading="lazy"
-                />
-              </div>
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent to-slate-50/40" />
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 /* =============================================================================
-   KPI strip (bigger, more premium)
+   KPI strip
 ============================================================================= */
 function StatCard({
   value,
@@ -235,7 +242,7 @@ function StatCard({
   icon?: keyof typeof I;
 }) {
   return (
-    <div className="card px-6 py-6 text-center ring-1 ring-slate-200 bg-white">
+      <div className="card px-5 py-4 text-center ring-1 ring-slate-200 bg-white shadow-soft">
       <div className="mx-auto flex items-center justify-center gap-2">
         {icon && I[icon]({ className: "h-6 w-6 text-brand-700" })}
         <div className="text-3xl font-bold tracking-tight text-brand-800">{value}</div>
@@ -244,78 +251,61 @@ function StatCard({
     </div>
   );
 }
-
 function StatsStrip() {
   return (
-    <section className="bg-slate-50 py-10">
+    <section className="bg-slate-50 py-4 md:py-6">
       <div className="container">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-          <StatCard value="25+" label="Years serving CA" icon="business" />
-          <StatCard value="30+" label="Carriers quoted" icon="star" />
-          <StatCard value="4.8★" label="Client review avg." icon="star" />
-          <StatCard value="3" label="Languages spoken" icon="phone" />
+        <div className="rounded-2xl bg-white/90 backdrop-blur-sm shadow-soft ring-1 ring-slate-200/0">
+          <div className="px-4 md:px-5 py-4 md:py-5">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+              <StatCard value="25+" label="Years serving CA" icon="business" />
+              <StatCard value="30+" label="Carriers quoted" icon="star" />
+              <StatCard value="4.8★" label="Client review avg." icon="star" />
+              <StatCard value="3" label="Languages spoken" icon="phone" />
+            </div>
+          </div>
         </div>
+
       </div>
     </section>
   );
 }
 
 /* =============================================================================
-   Service cards — photos for major lines; icons fallback
+   Service cards
 ============================================================================= */
-const SIcons = {
-  commercial: (props: any) => (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <path d="M4 20h16V8l-8-5-8 5v12zm8-9 8-5M4 6l8 5" />
-    </svg>
-  ),
-  motorcycle: (props: any) => (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <path d="M5 16a3 3 0 1 1 2.9-3.6h3.2l-1-2H8v-2h4l2 3h4v2h-1.1a3 3 0 1 1-2.9 3.6H10.8A4.99 4.99 0 0 1 5 16z" />
-    </svg>
-  ),
-  recreational: (props: any) => (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <path d="M3 16h18v3H3v-3zm2-6h14l2 4H3l2-4zm4-4h6l1 2H8l1-2z" />
-    </svg>
-  ),
-};
-
 function ServiceCard({
   title,
   blurb,
   image,
   alt,
-  icon,
+  objectPos,
 }: {
   title: string;
   blurb: string;
   image?: string;
   alt?: string;
-  icon?: keyof typeof SIcons;
+  objectPos?: string;
 }) {
   return (
-    <div className="card overflow-hidden hover:shadow-hard transition group">
-      <div className="relative h-32 w-full">
+    <div className="card overflow-hidden hover:shadow-hard transition group shadow-soft">
+      <div className="relative h-36 w-full">
         {image ? (
           <>
             <img
               src={image}
               alt={alt || ""}
-              className="absolute inset-0 h-full w-full object-cover"
+              className={clsx("absolute inset-0 h-full w-full object-cover", objectPos || "")}
               loading="lazy"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/30 to-transparent" />
           </>
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-800 to-brand-600 grid place-items-center">
-            {icon && SIcons[icon]({ className: "h-10 w-10 text-white/90" })}
-          </div>
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-800 to-brand-600 grid place-items-center" />
         )}
       </div>
       <div className="p-6">
         <h4 className="font-semibold text-slate-900 flex items-center gap-2">
-          {/* inline icons to make sections feel professional */}
           {title.match(/auto/i) && I.auto({ className: "h-5 w-5 text-brand-700" })}
           {title.match(/home|rent/i) && I.home({ className: "h-5 w-5 text-brand-700" })}
           {title.match(/life/i) && I.life({ className: "h-5 w-5 text-brand-700" })}
@@ -343,7 +333,7 @@ function ServiceCard({
 }
 
 /* =============================================================================
-   How it works (nicer, iconized, stepped)
+   How it works
 ============================================================================= */
 function QuoteSteps() {
   const steps = [
@@ -368,193 +358,71 @@ function QuoteSteps() {
   ] as const;
 
   return (
-    <section className="py-18 md:py-20 bg-white">
+    <section className="pt-20 md:pt-24 pb-24 md:pb-20 bg-white border-t border-slate-200 md:border-none">
       <div className="container">
-        <SectionHeader
-          eyebrow="How it works"
-          title="Get your quote in three simple steps"
-          subtitle="No pressure, no spam — just straight answers from a licensed broker."
-          align="center"
-          kicker={
-            <div className="mt-3 flex items-center justify-center gap-2">
-              <Pill>Average call: ~10 minutes</Pill>
-              <Pill>Most quotes same day</Pill>
-            </div>
-          }
-        />
-        <ol className="mt-10 grid md:grid-cols-3 gap-6">
-          {steps.map((s, i) => (
-            <li key={s.title} className="card p-6 group ring-1 ring-slate-200 bg-white">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-brand-600 text-white grid place-items-center">
-                  {I[s.icon]({ className: "h-5 w-5" })}
+        <SectionCard>
+          <div className="px-4 md:px-6 py-10">
+            <SectionHeader
+              eyebrow="How it works"
+              title="Get your quote in three simple steps"
+              subtitle="No pressure, no spam — just straight answers from a licensed broker."
+              align="center"
+              kicker={
+                <div className="mt-3 flex items-center justify-center gap-2">
+                  <Pill>Average call: ~10 minutes</Pill>
+                  <Pill>Most quotes same day</Pill>
                 </div>
-                <div className="h-10 w-10 rounded-xl bg-brand-100 text-brand-800 grid place-items-center font-semibold">
-                  {i + 1}
-                </div>
-              </div>
-              <h4 className="mt-4 font-semibold text-slate-900">{s.title}</h4>
-              <p className="mt-2 text-sm text-slate-600">{s.body}</p>
-              <ul className="mt-3 flex flex-wrap gap-1.5">
-                {s.chips.map((c) => (
-                  <Pill key={c}>{c}</Pill>
-                ))}
-              </ul>
-            </li>
-          ))}
-        </ol>
-        <div className="mt-8 flex items-center justify-center gap-3">
-          <NavLink to="/contact" className="btn btn-primary">
-            Start a Quote
-          </NavLink>
-          <a className="btn btn-ghost" href={site.contact.phoneHref}>
-            Call {site.contact.phone}
-          </a>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* =============================================================================
-   Broker vs Captive (visual upgrades)
-============================================================================= */
-function Comparison() {
-  const rows = [
-    { key: "Carriers quoted", broker: "Many (we shop for you)", captive: "One brand only" },
-    { key: "Coverage fit", broker: "Tailored to your risk + budget", captive: "Limited to in-house products" },
-    { key: "Claims help", broker: "We assist & escalate", captive: "Call center only" },
-    { key: "Discount scan", broker: "Multi-carrier discounts checked", captive: "Brand-specific only" },
-    { key: "Policy changes", broker: "Call/email/text our office", captive: "App/portal; limited office help" },
-  ];
-
-  return (
-    <section className="py-18 md:py-20 bg-slate-50">
-      <div className="container">
-        <SectionHeader
-          eyebrow="Why a broker?"
-          title="More options, fewer headaches"
-          subtitle="We advocate for you — not a single brand."
-        />
-        <div className="mt-8 overflow-hidden rounded-2xl ring-1 ring-slate-200 bg-white">
-          <table className="min-w-full text-sm">
-            <thead className="bg-gradient-to-r from-slate-50 to-white text-slate-700">
-              <tr>
-                <th className="px-4 py-3 text-left font-semibold">Feature</th>
-                <th className="px-4 py-3 text-left font-semibold text-brand-800">
-                  {site.name} (Broker)
-                </th>
-                <th className="px-4 py-3 text-left font-semibold">Captive Agent</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {rows.map((r) => (
-                <tr key={r.key} className="align-top hover:bg-slate-50/60">
-                  <td className="px-4 py-3 text-slate-700">{r.key}</td>
-                  <td className="px-4 py-3 text-slate-900">{r.broker}</td>
-                  <td className="px-4 py-3 text-slate-600">{r.captive}</td>
-                </tr>
+              }
+            />
+            <ol className="mt-10 grid md:grid-cols-3 gap-6">
+              {steps.map((s, i) => (
+                <li key={s.title} className="card p-6 ring-1 ring-slate-200 bg-white shadow-soft">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-brand-600 text-white grid place-items-center">
+                      {I[s.icon]({ className: "h-5 w-5" })}
+                    </div>
+                    <div className="h-10 w-10 rounded-xl bg-brand-100 text-brand-800 grid place-items-center font-semibold">
+                      {i + 1}
+                    </div>
+                  </div>
+                  <h4 className="mt-4 font-semibold text-slate-900">{s.title}</h4>
+                  <p className="mt-2 text-sm text-slate-600">{s.body}</p>
+                  <ul className="mt-3 flex flex-wrap gap-1.5">
+                    {s.chips.map((c) => (
+                      <Pill key={c}>{c}</Pill>
+                    ))}
+                  </ul>
+                </li>
               ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="mt-6">
-          <NavLink className="btn btn-ghost" to="/about">
-            Learn more about our process
-          </NavLink>
-        </div>
+            </ol>
+          </div>
+        </SectionCard>
       </div>
     </section>
   );
 }
-
 /* =============================================================================
-   Testimonials — auto-scrolling carousel (hover to pause)
+   Testimonials — marquee (no bottom clipping)
 ============================================================================= */
-type Review = { quote: string; name: string; source: string; stars?: number };
-
-function Stars({ n = 5 }: { n?: number }) {
-  return (
-    <div className="flex" aria-label={`${n} out of 5 stars`}>
-      {Array.from({ length: 5 }).map((_, i) => (
-        <span key={i} className={clsx("w-4 h-4 inline-grid place-items-center")}>
-          {I.star({ className: clsx("w-4 h-4", i < n ? "text-amber-400" : "text-slate-300") })}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function GoogleBadge() {
-  return (
-    <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-[11px] text-slate-600">
-      <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" aria-hidden>
-        <path
-          fill="#4285F4"
-          d="M21.35 11.1h-9.17v2.98h5.38c-.23 1.25-1.45 3.67-5.38 3.67-3.24 0-5.89-2.68-5.89-5.98s2.65-5.98 5.89-5.98c1.84 0 3.07.78 3.77 1.45l2.57-2.48C17.61 3.3 15.67 2.4 13.18 2.4 7.99 2.4 3.8 6.6 3.8 11.77s4.2 9.38 9.38 9.38c5.41 0 8.98-3.8 8.98-9.17 0-.61-.06-1.05-.18-1.89z"
-        />
-      </svg>
-      Google Reviews
-    </span>
-  );
-}
-
-function TestimonialCard({ quote, name, source, stars = 5 }: Review) {
-  return (
-    <figure className="card p-6 h-full flex flex-col min-w-[280px] max-w-[360px] mr-4">
-      <div className="flex items-center justify-between">
-        <Stars n={stars} />
-        <GoogleBadge />
-      </div>
-      <blockquote className="mt-3 text-slate-700 leading-relaxed grow">“{quote}”</blockquote>
-      <figcaption className="mt-4 text-sm text-slate-500">
-        <span className="font-semibold text-slate-700">{name}</span>
-        <span className="sr-only"> — </span>
-        <span className="ml-1">{source}</span>
-      </figcaption>
-    </figure>
-  );
-}
-
 function Testimonials() {
-  // add more (fake) reviews on top of site.testimonials for now
-  const seed: Review[] = [
-    { quote: "They found me a lower rate and explained every coverage clearly.", name: "Daniel P.", source: "Google" },
-    { quote: "Bound same day and sent my eID cards in minutes. Smooth!", name: "Marisol G.", source: "Google" },
-    { quote: "Handled my claim follow-up like pros. Zero stress.", name: "Omar A.", source: "Google" },
-    { quote: "Switched my home + auto bundle and saved a ton.", name: "Stephanie R.", source: "Google" },
-    { quote: "Bilingual staff made it easy for my parents too.", name: "Yasmin H.", source: "Google" },
+  const reviews: { quote: string; name: string }[] = [
+    { quote: "They found me a lower rate and explained every coverage clearly.", name: "Daniel P." },
+    { quote: "Bound same day and sent my eID cards in minutes. Smooth!", name: "Marisol G." },
+    { quote: "Handled my claim follow-up like pros. Zero stress.", name: "Omar A." },
+    { quote: "Switched my home + auto bundle and saved a ton.", name: "Stephanie R." },
+    { quote: "Bilingual staff made it easy for my parents too.", name: "Yasmin H." },
+    ...(site as any).testimonials?.map((t: any) => ({ quote: t.quote, name: t.name })) ?? [],
   ];
-  const items: Review[] = [
-    ...(site as any).testimonials?.map((t: Review) => ({ ...t, stars: 5 })) ?? [],
-    ...seed,
-    ...seed, // duplicate to create a long loop for auto-scroll
-  ];
-
-  const railRef = useRef<HTMLDivElement | null>(null);
-  const [paused, setPaused] = useState(false);
-
-  useEffect(() => {
-    let raf: number;
-    let x = 0;
-    const tick = () => {
-      if (!railRef.current) return;
-      if (!paused) {
-        x += 0.5; // speed
-        railRef.current.scrollLeft = x;
-        if (railRef.current.scrollLeft + railRef.current.clientWidth >= railRef.current.scrollWidth - 1) {
-          x = 0; // loop
-          railRef.current.scrollLeft = 0;
-        }
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [paused]);
+  const loop = [...reviews, ...reviews, ...reviews];
 
   return (
-    <section className="py-18 md:py-20 bg-white">
+    <section className="relative pt-24 pb-28 md:py-28 bg-slate-50">
+      <style>{`
+        @keyframes marquee { 0% { transform: translateX(0) } 100% { transform: translateX(-50%) } }
+        .marquee { display:flex; width:max-content; animation:marquee 100s linear infinite }
+        @media (prefers-reduced-motion: reduce) { .marquee { animation:none; transform:none } }
+      `}</style>
+
       <div className="container">
         <SectionHeader
           eyebrow="Client reviews"
@@ -562,35 +430,145 @@ function Testimonials() {
           subtitle="Real feedback from the people we serve."
         />
       </div>
-      <div
-        className="mt-8 overflow-x-auto no-scrollbar"
-        ref={railRef}
-        onMouseEnter={() => setPaused(true)}
-        onMouseLeave={() => setPaused(false)}
-      >
+
+      {/* IMPORTANT: allow Y to be visible so shadows/corners aren't chopped */}
+      <div className="mt-8 overflow-x-hidden overflow-y-visible pb-2">
         <div className="container">
-          <div className="flex">
-            {items.slice(0, 18).map((t, i) => (
-              <TestimonialCard key={i} {...t} />
+          <div className="marquee">
+            {loop.map((t, i) => (
+              <figure
+                key={i}
+                className="
+                  card p-6 h-full flex flex-col
+                  min-w-[300px] max-w-[360px] mr-4
+                  ring-1 ring-slate-200 shadow-hard
+                "
+              >
+                <div className="flex items-center justify-between">
+                  <div aria-label="5 out of 5 stars" className="flex">
+                    {Array.from({ length: 5 }).map((_, j) => (
+                      <span key={j} className="w-4 h-4 inline-grid place-items-center">
+                        {I.star({ className: 'w-4 h-4 text-amber-400' })}
+                      </span>
+                    ))}
+                  </div>
+                  <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1 text-[11px] text-slate-600">
+                    <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" aria-hidden>
+                      <path
+                        fill="#4285F4"
+                        d="M21.35 11.1h-9.17v2.98h5.38c-.23 1.25-1.45 3.67-5.38 3.67-3.24 0-5.89-2.68-5.89-5.98s2.65-5.98 5.89-5.98c1.84 0 3.07.78 3.77 1.45l2.57-2.48C17.61 3.3 15.67 2.4 13.18 2.4 7.99 2.4 3.8 6.6 3.8 11.77s4.2 9.38 9.38 9.38c5.41 0 8.98-3.8 8.98-9.17 0-.61-.06-1.05-.18-1.89z"
+                      />
+                    </svg>
+                    Google Reviews
+                  </span>
+                </div>
+
+                <blockquote className="mt-3 text-slate-700 leading-relaxed grow">“{t.quote}”</blockquote>
+                <figcaption className="mt-4 text-sm text-slate-500">
+                  <span className="font-semibold text-slate-700">{t.name}</span>
+                </figcaption>
+              </figure>
             ))}
           </div>
         </div>
-      </div>
-      <div className="container">
-        <p className="mt-4 text-[12px] text-slate-500">
-          Reviews shown may be lightly edited for length and clarity.
-        </p>
       </div>
     </section>
   );
 }
 
 /* =============================================================================
-   Claims / multilingual strip
+   Carriers — full-bleed marquee (seamless + mobile/desktop speeds)
+   - Seamless: duplicate track exactly twice, animate 0 → -50%
+   - No hover pause, no click pause, non-draggable images
+   - Faster on mobile, slower on desktop (edit --carrier-speed below)
+============================================================================= */
+function CarriersCarousel() {
+  const fallback = Array.from({ length: 8 }, (_, i) =>
+    new URL(`../assets/clients/client-${i + 1}.png`, import.meta.url).href
+  );
+  const logos: string[] =
+    (Array.isArray((site as any).carriersLogos) && (site as any).carriersLogos.length > 0)
+      ? (site as any).carriersLogos
+      : fallback;
+
+  // Exactly TWO copies → seamless when animating -50%
+  const row = [...logos, ...logos];
+
+  // Sizes
+  const CARD_W = "w-[200px] sm:w-[260px]";
+  const CARD_H = "h-24 sm:h-28";
+  const IMG_H = "h-10 sm:h-12";
+  const IMG_MAX_W = "max-w-[150px] sm:max-w-[180px]";
+
+  return (
+    <section aria-label="Our carrier partners" className="relative bg-white py-10 carriers">
+      <div className="relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
+
+        {/* Speeds: mobile faster, desktop slower (edit the seconds here) */}
+        <style>{`
+          .carriers { --carrier-speed: 14s; }                 /* mobile speed (faster) */
+          @media (min-width: 640px) { .carriers { --carrier-speed: 30s; } } /* desktop speed */
+
+          @keyframes carriers-marquee {
+            0%   { transform: translate3d(0,0,0); }
+            100% { transform: translate3d(-50%,0,0); }
+          }
+          /* Important: NO gap/padding on the moving track; spacing via .card margin only */
+          .logos-track {
+            display: flex;
+            width: max-content;
+            animation: carriers-marquee var(--carrier-speed) linear infinite;
+            pointer-events: none; /* user can't interact/slow it */
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .logos-track { animation: none; transform: none; }
+          }
+        `}</style>
+
+        {/* Edge fades */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-24 bg-gradient-to-r from-white to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-24 bg-gradient-to-l from-white to-transparent" />
+
+        {/* No X overflow; allow Y for shadows; no left padding that would break seamless loop */}
+        <div className="overflow-x-hidden overflow-y-visible py-5 select-none">
+          <div className="logos-track">
+            {row.map((src, i) => (
+              <div
+                key={i}
+                className={[
+                  "card rounded-2xl bg-white ring-1 ring-slate-200 shadow-soft grid place-items-center shrink-0",
+                  CARD_W,
+                  CARD_H,
+                  "mx-2", // spacing moved to margin so both halves are identical
+                ].join(" ")}
+              >
+                <img
+                  src={src}
+                  alt={`Carrier ${(i % logos.length) + 1}`}
+                  className={["object-contain w-auto opacity-90", IMG_H, IMG_MAX_W].join(" ")}
+                  loading="lazy"
+                  draggable={false}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
+
+
+/* =============================================================================
+   Help / claims strip — REPAIRED (clean structure, consistent lift)
 ============================================================================= */
 function HelpStrip() {
   return (
     <section className="relative overflow-hidden">
+      <TopEdge from="from-slate-200/60" />
       <img
         src={photos.claims}
         alt="Agent completing insurance claim paperwork at a desk"
@@ -599,98 +577,84 @@ function HelpStrip() {
       />
       <div className="absolute inset-0 bg-gradient-to-b from-brand-900/85 via-brand-800/85 to-brand-800/90" />
       <div className="relative py-16 text-white">
-        <div className="container grid md:grid-cols-3 items-center gap-8">
-          <div className="md:col-span-2">
-            <h4 className="text-2xl font-semibold">Need help with a claim?</h4>
-            <p className="mt-1 text-white/90">
-              We’ll help you report, document, and follow up — even if it’s after hours.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Pill>Claims triage</Pill>
-              <Pill>Next-step guidance</Pill>
-              <Pill>Adjuster coordination</Pill>
+        <div className="container">
+          {/* Clean panel with consistent lift (no white box artifacts) */}
+          <div className="rounded-2xl ring-1 ring-white/15 bg-white/5 backdrop-blur-md shadow-soft">
+            <div className="px-5 md:px-8 py-8">
+              <div className="grid md:grid-cols-3 items-center gap-8">
+                <div className="md:col-span-2">
+                  <h4 className="text-2xl font-semibold">Need help with a claim?</h4>
+                  <p className="mt-1 text-white/90">
+                    We’ll help you report, document, and follow up — even if it’s after hours.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Pill>Claims triage</Pill>
+                    <Pill>Next-step guidance</Pill>
+                    <Pill>Adjuster coordination</Pill>
+                  </div>
+                </div>
+                <div className="flex gap-3 md:justify-end">
+                  <a className="btn btn-ghost" href={site.contact.phoneHref}>
+                    Call {site.contact.phone}
+                  </a>
+                  <NavLink className="btn btn-primary" to="/contact">
+                    Message Us
+                  </NavLink>
+                </div>
+              </div>
+
+              {/* Languages note — slimmer + cleaner so it doesn’t look “broken” */}
+              <div className="mt-6">
+                <div className="rounded-xl bg-white/10 px-4 py-3 ring-1 ring-white/20 shadow-hard">
+                  <p className="text-sm">
+                    <strong>También hablamos español.</strong> / <strong>نتحدث العربية.</strong>{" "}
+                    We serve in Spanish, Arabic, and English.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="flex gap-3 md:justify-end">
-            <a className="btn btn-ghost" href={site.contact.phoneHref}>
-              Call {site.contact.phone}
-            </a>
-            <NavLink className="btn btn-primary" to="/contact">
-              Message Us
-            </NavLink>
-          </div>
         </div>
-        <div className="container mt-6">
-          <div className="rounded-2xl bg-white/10 px-4 py-3 ring-1 ring-white/20">
-            <p className="text-sm">
-              <strong>También hablamos español.</strong> / <strong>نتحدث العربية.</strong> We serve in Spanish, Arabic, and English.
-            </p>
-          </div>
-        </div>
-      </div>
+      </div>      
     </section>
   );
 }
 
 /* =============================================================================
-   FAQ (accessible accordion, no deps)
+   FAQ
 ============================================================================= */
 function FAQ() {
   const qa = [
-    {
-      q: "How fast can I get a quote?",
-      a: "Many quotes are same-day. If we need extra info or specialty lines, we’ll keep you posted and usually turn it around within 24–48 hours.",
-    },
-    {
-      q: "Do you charge a broker fee?",
-      a: "For standard personal lines quotes, no broker fee. Specialty or surplus lines may have fees which we disclose up front.",
-    },
-    {
-      q: "Can you help after I buy?",
-      a: "Yes. We assist with policy changes, claims guidance, and renewal checkups to keep your coverage and price aligned.",
-    },
-    {
-      q: "Which carriers do you work with?",
-      a: "We work with a broad network across personal and commercial lines. Exact availability varies by risk and location.",
-    },
+    { q: "How fast can I get a quote?", a: "Many quotes are same-day. If we need extra info or specialty lines, we’ll keep you posted and usually turn it around within 24–48 hours." },
+    { q: "Do you offer free SR-22s?", a: "Yes — we provide free SR-22 filings with qualifying auto policies. Ask us when you get your quote." },
+    { q: "Can you help after I buy?", a: "Yes. We assist with policy changes, claims guidance, and renewal checkups to keep your coverage and price aligned." },
+    { q: "Which carriers do you work with?", a: "We work with a broad network across personal and commercial lines. Exact availability varies by risk and location." },
   ];
 
-  const [open, setOpen] = useState<number | null>(0);
-
   return (
-    <section className="bg-slate-50 py-18 md:py-20">
+    <section className="bg-slate-50 pt-20 pb-24 md:py-24 border-t border-slate-200 md:border-0">
       <div className="container">
-        <SectionHeader
-          eyebrow="FAQ"
-          title="Answers to common questions"
-          subtitle="If you don’t see what you need, call or message us — we’re happy to help."
-          align="center"
-        />
-        <div className="mt-8 max-w-3xl mx-auto">
-          {qa.map((item, idx) => {
-            const active = open === idx;
-            return (
-              <div key={idx} className="mb-3 overflow-hidden rounded-xl ring-1 ring-slate-200 bg-white">
-                <button
-                  className="w-full text-left px-4 py-4 flex items-center justify-between"
-                  onClick={() => setOpen(active ? null : idx)}
-                  aria-expanded={active}
-                >
-                  <span className="font-medium text-slate-900">{item.q}</span>
-                  <span className={clsx("transition-transform", active && "rotate-180")}>⌄</span>
-                </button>
-                <div
-                  className={clsx(
-                    "px-4 pb-4 text-sm text-slate-600 grid transition-[grid-template-rows,opacity] duration-300",
-                    active ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-                  )}
-                >
-                  <div className="overflow-hidden">{item.a}</div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <SectionCard>
+          <div className="px-4 md:px-6 py-8">
+            <SectionHeader
+              eyebrow="FAQ"
+              title="Answers to common questions"
+              subtitle="If you don’t see what you need, call or message us — we’re happy to help."
+              align="center"
+            />
+            <div className="mt-8 max-w-3xl mx-auto">
+              {qa.map((item, idx) => (
+                <details key={idx} className="mb-3 overflow-hidden rounded-xl ring-1 ring-slate-200 bg-white group shadow-soft">
+                  <summary className="cursor-pointer list-none px-4 py-4 flex items-center justify-between">
+                    <span className="font-medium text-slate-900">{item.q}</span>
+                    <span className="transition-transform group-open:rotate-180">⌄</span>
+                  </summary>
+                  <div className="px-4 pb-4 text-sm text-slate-600">{item.a}</div>
+                </details>
+              ))}
+            </div>
+          </div>
+        </SectionCard>
       </div>
     </section>
   );
@@ -737,32 +701,23 @@ export default function Home() {
   const scrollToServices = () =>
     servicesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 
-  const topServices = useMemo<Service[]>(
-    () => (site.services as Service[]).slice(0, 6),
-    []
-  );
+  const topServices = useMemo<Service[]>(() => (site.services as Service[]).slice(0, 6), []);
 
+  // Tuned image crops (raise Auto key, lower Life family)
   const imageForService = (title: string) => {
     if (/auto|car|vehicle/i.test(title))
-      return { src: photos.auto, alt: "Car key handover at a dealership counter" };
+      return { src: photos.auto, alt: "Car key handover", objectPos: "object-[center_63%]" };
     if (/home|rent/i.test(title))
-      return { src: photos.home, alt: "House model with keys on a table" };
+      return { src: photos.home, alt: "House model with keys", objectPos: "object-[center_60%]" };
     if (/life/i.test(title))
-      return { src: photos.life, alt: "Parents holding a baby outdoors at sunset" };
+      return { src: photos.life, alt: "Parents with child outdoors", objectPos: "object-[center_8%]" };
     if (/commercial|business|liability|workers|bop|general/i.test(title))
-      return { src: photos.commercial, alt: "Business owner reviewing insurance paperwork" };
+      return { src: photos.commercial, alt: "Business paperwork", objectPos: "object-[center_35%]" };
     if (/motorcycle|bike|moto/i.test(title))
-      return { src: photos.motorcycle, alt: "Motorcycle on a road with rider gear" };
+      return { src: photos.motorcycle, alt: "Motorcycle on road", objectPos: "object-[center_85%]" };
     if (/recreational|rv|boat|toy|specialty/i.test(title))
-      return { src: photos.recreational, alt: "Recreational vehicle at a scenic campsite" };
+      return { src: photos.recreational, alt: "RV at campsite", objectPos: "object-[center_55%]" };
     return undefined;
-  };
-
-  const iconForService = (title: string): keyof typeof SIcons | undefined => {
-    if (/commercial|business|liability|workers|bop|general/i.test(title)) return "commercial";
-    if (/motorcycle|bike|moto/i.test(title)) return "motorcycle";
-    if (/recreational|rv|boat|toy|specialty/i.test(title)) return "recreational";
-    return "commercial";
   };
 
   return (
@@ -777,7 +732,7 @@ export default function Home() {
       <QuickContactBar />
       <StickyRibbon />
 
-      {/* HERO — blue overlay, refined spacing */}
+      {/* HERO — no more white box; content sits directly over image/gradients */}
       <section
         className="relative overflow-hidden text-white"
         style={{ background: "linear-gradient(180deg, var(--brand-900), var(--brand-800))" }}
@@ -789,25 +744,20 @@ export default function Home() {
           className="absolute inset-0 h-full w-full object-cover opacity-35"
           fetchPriority="high"
         />
-        <div
-          className="absolute inset-0 bg-gradient-to-t from-brand-900/55 via-brand-900/25 to-transparent"
-          aria-hidden="true"
-        />
-        <div
-          className="absolute inset-0 bg-[radial-gradient(800px_400px_at_20%_20%,_rgba(255,255,255,0.10),_transparent)]"
-          aria-hidden
-        />
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-900/55 via-brand-900/25 to-transparent" />
+        <div className="absolute inset-0 bg-[radial-gradient(900px_500px_at_18%_18%,_rgba(255,255,255,0.12),_transparent)]" />
 
-        <div className="container relative">
-          <div className="py-20 md:py-28 max-w-2xl">
+        <div className="container relative py-10 md:py-16">
+          <div className="max-w-3xl">
             <p className="text-brand-200 font-semibold tracking-wide uppercase text-[11px]">
               Since 1999 · Downey, CA
             </p>
-            <h1 id="hero-title" className="mt-3 font-display text-4xl md:text-5xl font-semibold leading-tight">
+            <h1 id="hero-title" className="mt-3 text-4xl md:text-5xl font-semibold leading-tight">
               Coverage that puts people first.
             </h1>
-            <p className="mt-4 text-white/90">
-              Side-by-side quotes from multiple carriers, explained clearly. We match protection to your life and your budget — without the runaround.
+            <p className="mt-4 text-white/90 max-w-prose">
+              Side-by-side quotes from multiple carriers, explained clearly. We match protection to
+              your life and your budget — without the runaround.
             </p>
 
             <div className="mt-6 flex flex-col sm:flex-row gap-3">
@@ -819,130 +769,119 @@ export default function Home() {
               </button>
             </div>
 
-            <div className="mt-6 text-sm text-white/85">
-              Call <a href={site.contact.phoneHref} className="underline">{site.contact.phone}</a> or email{" "}
-              <a href={site.contact.emailHref} className="underline">{site.contact.email}</a>
-            </div>
+            
 
-            {/* line-of-business icons for extra polish */}
-            <div className="mt-6 flex flex-wrap gap-3">
-              <span className="inline-flex items-center gap-2 text-white/90 bg-white/10 ring-1 ring-white/15 rounded-lg px-2.5 py-1.5 text-[12px]">
-                {I.auto({ className: "h-4 w-4" })} Auto
-              </span>
-              <span className="inline-flex items-center gap-2 text-white/90 bg-white/10 ring-1 ring-white/15 rounded-lg px-2.5 py-1.5 text-[12px]">
-                {I.home({ className: "h-4 w-4" })} Home
-              </span>
-              <span className="inline-flex items-center gap-2 text-white/90 bg-white/10 ring-1 ring-white/15 rounded-lg px-2.5 py-1.5 text-[12px]">
-                {I.life({ className: "h-4 w-4" })} Life
-              </span>
-              <span className="inline-flex items-center gap-2 text-white/90 bg-white/10 ring-1 ring-white/15 rounded-lg px-2.5 py-1.5 text-[12px]">
-                {I.business({ className: "h-4 w-4" })} Business
-              </span>
-              <span className="inline-flex items-center gap-2 text-white/90 bg-white/10 ring-1 ring-white/15 rounded-lg px-2.5 py-1.5 text-[12px]">
-                {I.bike({ className: "h-4 w-4" })} Motorcycle
-              </span>
-              <span className="inline-flex items-center gap-2 text-white/90 bg-white/10 ring-1 ring-white/15 rounded-lg px-2.5 py-1.5 text-[12px]">
-                {I.rv({ className: "h-4 w-4" })} RV / Rec
-              </span>
+            {/* Slim chips row */}
+            <div className="mt-6 overflow-x-auto [-webkit-overflow-scrolling:touch]">
+              <div className="flex items-center gap-3 min-w-max">
+                <span className="inline-flex items-center gap-2 text-white/90 bg-white/10 ring-1 ring-white/15 rounded-lg px-2.5 py-1.5 text-[12px] shadow-soft">
+                  {I.auto({ className: "h-4 w-4" })} Auto
+                </span>
+                <span className="inline-flex items-center gap-2 text-white/90 bg-white/10 ring-1 ring-white/15 rounded-lg px-2.5 py-1.5 text-[12px] shadow-soft">
+                  {I.home({ className: "h-4 w-4" })} Home
+                </span>
+                <span className="inline-flex items-center gap-2 text-white/90 bg-white/10 ring-1 ring-white/15 rounded-lg px-2.5 py-1.5 text-[12px] shadow-soft">
+                  {I.life({ className: "h-4 w-4" })} Life
+                </span>
+                <span className="inline-flex items-center gap-2 text-white/90 bg-white/10 ring-1 ring-white/15 rounded-lg px-2.5 py-1.5 text-[12px] shadow-soft">
+                  {I.business({ className: "h-4 w-4" })} Business
+                </span>
+                <span className="inline-flex items-center gap-2 text-white/90 bg-white/10 ring-1 ring-white/15 rounded-lg px-2.5 py-1.5 text-[12px] shadow-soft">
+                  {I.bike({ className: "h-4 w-4" })} Motorcycle
+                </span>
+                <span className="inline-flex items-center gap-2 text-white/90 bg-white/10 ring-1 ring-white/15 rounded-lg px-2.5 py-1.5 text-[12px] shadow-soft">
+                  {I.rv({ className: "h-4 w-4" })} RV / Rec
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <CarriersStrip />
+      {/* KPIs */}
       <StatsStrip />
 
       {/* SERVICES */}
-      <section ref={servicesRef} className="py-18 md:py-24 bg-white" id="main-content">
+<section ref={servicesRef} className="pt-0 md:pt-0 pb-8 md:pb-10 bg-white" id="main-content">
         <div className="container">
-          <SectionHeader
-            title="Personal & Commercial Insurance"
-            subtitle="We shop multiple carriers to find value — not just a price."
-          />
-          <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {topServices.map((s) => {
-              const title = s.title ?? s.name ?? s.key;
-              const blurb = s.blurb ?? s.desc ?? "";
-              const img = imageForService(title);
-              if (img) {
-                return (
-                  <ServiceCard key={s.key} title={title} blurb={blurb} image={img.src} alt={img.alt} />
-                );
-              }
-              return <ServiceCard key={s.key} title={title} blurb={blurb} icon={iconForService(title)} />;
-            })}
-          </div>
-          <div className="mt-8">
-            <NavLink to="/services" className="btn btn-ghost">
-              Explore all services
-            </NavLink>
-          </div>
+          <SectionCard>
+            <div className="px-4 md:px-6 py-8">
+              <SectionHeader
+                title="Personal & Commercial Insurance"
+                subtitle="We shop multiple carriers to find value — not just a price."
+              />
+              <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {useMemo(() => topServices, [topServices]).map((s) => {
+                  const title = s.title ?? s.name ?? s.key;
+                  const blurb = s.blurb ?? s.desc ?? "";
+                  const img = imageForService(title);
+                  return (
+                    <ServiceCard
+                      key={s.key}
+                      title={title}
+                      blurb={blurb}
+                      image={img?.src}
+                      alt={img?.alt}
+                      objectPos={img?.objectPos}
+                    />
+                  );
+                })}
+              </div>
+              <div className="mt-3">
+                <NavLink to="/services" className="btn btn-ghost">
+                  Explore all services
+                </NavLink>
+              </div>
+            </div>
+          </SectionCard>
         </div>
       </section>
+
+      {/* CARRIERS */}
+      <CarriersCarousel />
 
       {/* ABOUT */}
-      <section className="py-18 md:py-20 bg-slate-50">
+      <section className="pt-16 md:pt-20 pb-24 md:pb-20 bg-slate-50">
         <div className="container grid lg:grid-cols-2 gap-10 items-center">
-          <div className="order-2 lg:order-1">
-            <SectionHeader
-              title="Local service. 25+ years of experience."
-              subtitle={site.description}
+          <SectionCard className="order-2 lg:order-1">
+            <div className="px-6 py-6">
+              <SectionHeader title="Local service. 25+ years of experience." subtitle={site.description} />
+              <ul className="mt-5 grid gap-2 text-slate-700">
+                <li>• Multiple carrier quotes — we do the shopping.</li>
+                <li>• Friendly, multilingual staff (Arabic, Spanish, English).</li>
+                <li>• Claims guidance when you need it most.</li>
+              </ul>
+              <NavLink to="/about" className="btn btn-primary mt-6">
+                About Us
+              </NavLink>
+            </div>
+          </SectionCard>
+
+          <figure className="order-1 lg:order-2 relative aspect-[4/3] w-full overflow-hidden rounded-2xl ring-1 ring-slate-900/10 shadow-soft">
+            <img
+              src={photos.about}
+              alt="Handshake after reviewing coverage options with a licensed broker"
+              className="h-full w-full object-cover"
+              loading="lazy"
             />
-            <ul className="mt-5 grid gap-2 text-slate-700">
-              <li>• Multiple carrier quotes — we do the shopping.</li>
-              <li>• Friendly, multilingual staff (Arabic, Spanish, English).</li>
-              <li>• Claims guidance when you need it most.</li>
-            </ul>
-            <NavLink to="/about" className="btn btn-primary mt-6">
-              About Us
-            </NavLink>
-          </div>
-          <div className="order-1 lg:order-2">
-            <figure className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl ring-1 ring-slate-900/10">
-              <img
-                src={photos.about}
-                alt="Handshake after reviewing coverage options with a licensed broker"
-                className="h-full w-full object-cover"
-                loading="lazy"
-              />
-              <figcaption className="absolute bottom-2 right-2 text-[11px] bg-black/40 text-white px-2 py-1 rounded">
-                Personal service, clear guidance.
-              </figcaption>
-            </figure>
-          </div>
+            <figcaption className="absolute bottom-2 right-2 text-[11px] bg-black/40 text-white px-2 py-1 rounded">
+              Personal service, clear guidance.
+            </figcaption>
+          </figure>
         </div>
       </section>
 
+      {/* HOW IT WORKS */}
       <QuoteSteps />
-      <Comparison />
-      <Testimonials />
-      <HelpStrip />
-      <FAQ />
 
-      {/* FOOTER CTA */}
-      <section className="bg-brand-800 text-white">
-        <div className="container py-10 grid md:grid-cols-2 gap-6 items-center">
-          <div>
-            <h3 className="text-2xl font-semibold">Get a custom quote today.</h3>
-            <p className="mt-2 text-white/90">
-              Quick answers from a local, licensed broker. Visit us at {OFFICE.street}, {OFFICE.city},{" "}
-              {OFFICE.region} {OFFICE.zip} or call{" "}
-              <a href={site.contact.phoneHref} className="underline">
-                {site.contact.phone}
-              </a>
-              .
-            </p>
-          </div>
-          <div className="flex md:justify-end gap-3">
-            <a className="btn btn-ghost" href={site.contact.phoneHref}>
-              Call {site.contact.phone}
-            </a>
-            <NavLink className="btn btn-primary" to="/contact">
-              Request a Quote
-            </NavLink>
-          </div>
-        </div>
-      </section>
+      {/* REVIEWS */}
+      <Testimonials />
+
+      {/* HELP STRIP (fixed) */}
+      <HelpStrip />
+
+      {/* FAQ */}
+      <FAQ />
     </>
   );
 }
